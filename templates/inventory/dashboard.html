@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Dashboard - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Inventory Dashboard</h1>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <h3>Total Reagents</h3>
+        <p class="metric-value">{{ total_reagents }}</p>
+    </div>
+    <div class="metric-card">
+        <h3>Total Stock Items</h3>
+        <p class="metric-value">{{ total_stock_items }}</p>
+    </div>
+    <div class="metric-card alert">
+        <h3>Low Stock Items</h3>
+        <p class="metric-value">{{ low_stock_count }}</p>
+    </div>
+    <div class="metric-card warning">
+        <h3>Expiring Soon</h3>
+        <p class="metric-value">{{ expiring_soon_count }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Low Stock Alerts</h3>
+            </div>
+            <div class="card-body">
+                {% if low_stock %}
+                    <ul class="list-unstyled">
+                        {% for item in low_stock %}
+                            <li class="alert-item">
+                                <strong>{{ item.name }}</strong>: {{ item.quantity }} {{ item.unit }}
+                                <span class="badge badge-warning">Low</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'inventory:low_stock_alerts' %}" class="btn btn-sm btn-secondary">View All</a>
+                {% else %}
+                    <p class="text-muted">No low stock items.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Expiring Soon</h3>
+            </div>
+            <div class="card-body">
+                {% if expiring_soon %}
+                    <ul class="list-unstyled">
+                        {% for item in expiring_soon %}
+                            <li class="alert-item">
+                                <strong>{{ item.name }}</strong>: Expires {{ item.expiry_date|date:"Y-m-d" }}
+                                <span class="badge badge-danger">Expiring</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No items expiring soon.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

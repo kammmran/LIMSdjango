@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Results - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Pending Review</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Results Awaiting Review</h3>
+    </div>
+    <div class="card-body">
+        {% if results %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sample ID</th>
+                        <th>Test</th>
+                        <th>Entered By</th>
+                        <th>Entry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.test_assignment.sample.sample_id }}</td>
+                        <td>{{ result.test_assignment.test.name }}</td>
+                        <td>{{ result.entered_by.get_full_name }}</td>
+                        <td>{{ result.entry_date|date:"Y-m-d H:i" }}</td>
+                        <td><span class="badge badge-warning">{{ result.get_status_display }}</span></td>
+                        <td>
+                            <form method="post" action="{% url 'results:approve_result' result.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form method="post" action="{% url 'results:reject_result' result.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No results pending review.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

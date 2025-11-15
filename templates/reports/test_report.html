@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Report - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Test Report</h1>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">Back to Reports</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Filter Options</h3>
+    </div>
+    <div class="card-body">
+        <form method="get" class="filter-form">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="start_date">Start Date:</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="end_date">End Date:</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select name="status" id="status" class="form-control">
+                            <option value="">All</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+    </div>
+</div>
+
+{% if assignments %}
+<div class="card">
+    <div class="card-header">
+        <h3>Test Report Results</h3>
+        <button onclick="window.print()" class="btn btn-sm btn-secondary">Print / Export PDF</button>
+    </div>
+    <div class="card-body">
+        <p><strong>Total Tests:</strong> {{ assignments|length }}</p>
+        <p><strong>Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Sample ID</th>
+                    <th>Test</th>
+                    <th>Assigned To</th>
+                    <th>Assigned Date</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td>{{ assignment.sample.sample_id }}</td>
+                    <td>{{ assignment.test.name }}</td>
+                    <td>{{ assignment.assigned_to.get_full_name|default:'-' }}</td>
+                    <td>{{ assignment.assigned_date|date:"Y-m-d" }}</td>
+                    <td><span class="badge">{{ assignment.get_status_display }}</span></td>
+                    <td><span class="badge badge-{{ assignment.priority }}">{{ assignment.get_priority_display }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Sample List</h2>
+    <a href="{% url 'samples:sample_create' %}" class="btn btn-primary">Register New Sample</a>
+</div>
+
+<!-- Filters -->
+<div class="card filters-card">
+    <form method="get" class="filters-form">
+        <div class="filter-group">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by ID or source..." class="form-control">
+        </div>
+        
+        <div class="filter-group">
+            <select name="type" class="form-control">
+                <option value="">All Types</option>
+                {% for value, label in sample_types %}
+                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <select name="status" class="form-control">
+                <option value="">All Status</option>
+                {% for value, label in statuses %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <select name="priority" class="form-control">
+                <option value="">All Priorities</option>
+                {% for value, label in priorities %}
+                <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a href="{% url 'samples:sample_list' %}" class="btn btn-light">Clear</a>
+    </form>
+</div>
+
+<!-- Sample Table -->
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Sample ID</th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assigned To</th>
+                <th>Received Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in page_obj %}
+            <tr>
+                <td><a href="{% url 'samples:sample_detail' sample.pk %}">{{ sample.sample_id }}</a></td>
+                <td>{{ sample.get_sample_type_display }}</td>
+                <td>{{ sample.source }}</td>
+                <td><span class="badge badge-{{ sample.status }}">{{ sample.get_status_display }}</span></td>
+                <td><span class="badge badge-priority-{{ sample.priority }}">{{ sample.get_priority_display }}</span></td>
+                <td>{{ sample.assigned_technician.get_full_name|default:"-" }}</td>
+                <td>{{ sample.received_date }}</td>
+                <td>
+                    <a href="{% url 'samples:sample_detail' sample.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'samples:sample_edit' sample.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No samples found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">Previous</a>
+        {% endif %}
+        
+        <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

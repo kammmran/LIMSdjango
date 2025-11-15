@@ -1,0 +1,18 @@
+# Django LIMS - Requirements
+
+Django
+Pillow>=10.0.0
+python-dateutil>=2.8.2
+
+# Optional but recommended
+django-crispy-forms>=2.0
+crispy-bootstrap4>=2.0
+
+# For production
+gunicorn>=21.2.0
+psycopg2-binary>=2.9.9  # For PostgreSQL
+whitenoise>=6.6.0  # For serving static files
+
+# Development
+black>=23.0.0
+flake8>=6.0.0

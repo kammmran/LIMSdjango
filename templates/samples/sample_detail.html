@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Sample Details: {{ sample.sample_id }}</h2>
+    <div>
+        <a href="{% url 'samples:sample_edit' sample.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'samples:sample_list' %}" class="btn btn-light">Back to List</a>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Sample Information Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Sample Information</h3>
+        </div>
+        <div class="card-body">
+            <table class="info-table">
+                <tr>
+                    <th>Sample ID:</th>
+                    <td>{{ sample.sample_id }}</td>
+                </tr>
+                <tr>
+                    <th>Type:</th>
+                    <td>{{ sample.get_sample_type_display }}</td>
+                </tr>
+                <tr>
+                    <th>Source:</th>
+                    <td>{{ sample.source }}</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td><span class="badge badge-{{ sample.status }}">{{ sample.get_status_display }}</span></td>
+                </tr>
+                <tr>
+                    <th>Priority:</th>
+                    <td><span class="badge badge-priority-{{ sample.priority }}">{{ sample.get_priority_display }}</span></td>
+                </tr>
+                <tr>
+                    <th>Received Date:</th>
+                    <td>{{ sample.received_date }} {{ sample.received_time }}</td>
+                </tr>
+                <tr>
+                    <th>Assigned Technician:</th>
+                    <td>{{ sample.assigned_technician.get_full_name|default:"-" }}</td>
+                </tr>
+                <tr>
+                    <th>Registered By:</th>
+                    <td>{{ sample.registered_by.get_full_name|default:"-" }}</td>
+                </tr>
+                {% if sample.notes %}
+                <tr>
+                    <th>Notes:</th>
+                    <td>{{ sample.notes }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Assigned Tests Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Assigned Tests</h3>
+            <a href="{% url 'tests:assign_test' %}?sample={{ sample.pk }}" class="btn btn-sm btn-primary">Assign Test</a>
+        </div>
+        <div class="card-body">
+            {% if sample.test_assignments.all %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in sample.test_assignments.all %}
+                    <tr>
+                        <td>{{ assignment.test.name }}</td>
+                        <td><span class="badge badge-{{ assignment.status }}">{{ assignment.get_status_display }}</span></td>
+                        <td>{{ assignment.assigned_to.get_full_name|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No tests assigned yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Attachments Card -->
+    <div class="card full-width">
+        <div class="card-header">
+            <h3>Attachments</h3>
+        </div>
+        <div class="card-body">
+            {% if sample.attachments.all %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Description</th>
+                        <th>Uploaded By</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attachment in sample.attachments.all %}
+                    <tr>
+                        <td>{{ attachment.filename }}</td>
+                        <td>{{ attachment.description }}</td>
+                        <td>{{ attachment.uploaded_by.get_full_name }}</td>
+                        <td>{{ attachment.uploaded_at }}</td>
+                        <td><a href="{{ attachment.file.url }}" class="btn btn-sm btn-info" download>Download</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No attachments</p>
+            {% endif %}
+            
+            <!-- Upload Form -->
+            <form method="post" enctype="multipart/form-data" class="mt-3">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Upload Attachment</label>
+                    {{ attachment_form.file }}
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    {{ attachment_form.description }}
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-table {
+    width: 100%;
+}
+.info-table th {
+    font-weight: 600;
+    padding: 0.5rem 0;
+    width: 40%;
+    color: var(--text-secondary);
+}
+.info-table td {
+    padding: 0.5rem 0;
+}
+</style>
+{% endblock %}

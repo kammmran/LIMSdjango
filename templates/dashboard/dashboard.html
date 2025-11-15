@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard">
+    <h2 class="page-title">Dashboard</h2>
+    
+    <!-- Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-content">
+                <h3>{{ total_samples_today }}</h3>
+                <p>Samples Today</p>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">⏳</div>
+            <div class="metric-content">
+                <h3>{{ pending_tests }}</h3>
+                <p>Pending Tests</p>
+            </div>
+        </div>
+        
+        <div class="metric-card warning">
+            <div class="metric-icon">👁️</div>
+            <div class="metric-content">
+                <h3>{{ pending_reviews }}</h3>
+                <p>Pending Reviews</p>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">✅</div>
+            <div class="metric-content">
+                <h3>{{ completed_tests }}</h3>
+                <p>Completed Tests</p>
+            </div>
+        </div>
+        
+        <div class="metric-card warning">
+            <div class="metric-icon">🔬</div>
+            <div class="metric-content">
+                <h3>{{ instruments_needing_calibration }}</h3>
+                <p>Instruments Need Calibration</p>
+            </div>
+        </div>
+        
+        <div class="metric-card alert">
+            <div class="metric-icon">⚠️</div>
+            <div class="metric-content">
+                <h3>{{ low_stock_alerts }}</h3>
+                <p>Low Stock Alerts</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Activity Feed -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Weekly Sample Count</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklySamplesChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Test Categories</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="testCategoriesChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card full-width">
+            <div class="card-header">
+                <h3>Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <div class="activity-feed">
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon">{{ activity.action|slice:":1"|upper }}</div>
+                        <div class="activity-content">
+                            <p class="activity-user">{{ activity.user.get_full_name }}</p>
+                            <p class="activity-action">{{ activity.get_action_display }} {{ activity.model_name }} - {{ activity.object_repr }}</p>
+                            <p class="activity-time">{{ activity.timestamp|timesince }} ago</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent activity</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Samples</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sample ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in recent_samples %}
+                        <tr>
+                            <td><a href="{% url 'samples:sample_detail' sample.pk %}">{{ sample.sample_id }}</a></td>
+                            <td>{{ sample.get_sample_type_display }}</td>
+                            <td><span class="badge badge-{{ sample.status }}">{{ sample.get_status_display }}</span></td>
+                            <td>{{ sample.received_date }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No samples yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Pending Reviews</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sample</th>
+                            <th>Test</th>
+                            <th>Entered By</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in pending_review_list %}
+                        <tr>
+                            <td><a href="{% url 'samples:sample_detail' result.test_assignment.sample.pk %}">{{ result.test_assignment.sample.sample_id }}</a></td>
+                            <td>{{ result.test_assignment.test.name }}</td>
+                            <td>{{ result.entered_by.get_full_name|default:result.entered_by.username }}</td>
+                            <td>{{ result.entered_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No pending reviews</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Quick Links</h3>
+            </div>
+            <div class="card-body">
+                <div class="quick-links">
+                    <a href="{% url 'samples:sample_create' %}" class="btn btn-primary">Register Sample</a>
+                    <a href="{% url 'tests:assign_test' %}" class="btn btn-secondary">Assign Test</a>
+                    <a href="{% url 'results:result_list' %}" class="btn btn-secondary">Enter Results</a>
+                    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">Generate Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple chart rendering with Chart.js (you'll need to include Chart.js library)
+document.addEventListener('DOMContentLoaded', function() {
+    // Weekly samples data
+    const weeklySamplesData = {{ weekly_samples|safe }};
+    // Implement chart rendering here
+});
+</script>
+{% endblock %}

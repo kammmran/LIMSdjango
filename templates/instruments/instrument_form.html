@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Instrument - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ action }} Instrument</h1>
+    <a href="{% url 'instruments:instrument_list' %}" class="btn btn-secondary">Back to List</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="name">Instrument Name: *</label>
+                <input type="text" name="name" id="name" required 
+                       value="{{ instrument.name|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="model">Model:</label>
+                <input type="text" name="model" id="model" 
+                       value="{{ instrument.model|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="serial_number">Serial Number:</label>
+                <input type="text" name="serial_number" id="serial_number" 
+                       value="{{ instrument.serial_number|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="manufacturer">Manufacturer:</label>
+                <input type="text" name="manufacturer" id="manufacturer" 
+                       value="{{ instrument.manufacturer|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="operational" {% if instrument.status == 'operational' %}selected{% endif %}>Operational</option>
+                    <option value="maintenance" {% if instrument.status == 'maintenance' %}selected{% endif %}>Under Maintenance</option>
+                    <option value="calibration" {% if instrument.status == 'calibration' %}selected{% endif %}>Calibration Required</option>
+                    <option value="out_of_service" {% if instrument.status == 'out_of_service' %}selected{% endif %}>Out of Service</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="installation_date">Installation Date:</label>
+                <input type="date" name="installation_date" id="installation_date" 
+                       value="{{ instrument.installation_date|date:'Y-m-d'|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="calibration_frequency">Calibration Frequency (days):</label>
+                <input type="number" name="calibration_frequency" id="calibration_frequency" 
+                       value="{{ instrument.calibration_frequency|default:90 }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="next_calibration_date">Next Calibration Date:</label>
+                <input type="date" name="next_calibration_date" id="next_calibration_date" 
+                       value="{{ instrument.next_calibration_date|date:'Y-m-d'|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" name="location" id="location" 
+                       value="{{ instrument.location|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes:</label>
+                <textarea name="notes" id="notes" rows="3" class="form-control">{{ instrument.notes|default:'' }}</textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ action }} Instrument</button>
+                <a href="{% url 'instruments:instrument_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

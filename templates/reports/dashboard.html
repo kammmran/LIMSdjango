@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Reports Dashboard</h1>
+</div>
+
+<div class="reports-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3>📊 Sample Reports</h3>
+        </div>
+        <div class="card-body">
+            <p>Generate detailed reports on sample registration, processing status, and turnaround times.</p>
+            <a href="{% url 'reports:sample_report' %}" class="btn btn-primary">Generate Sample Report</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>🧪 Test Reports</h3>
+        </div>
+        <div class="card-body">
+            <p>View test results, completion rates, and test type statistics across date ranges.</p>
+            <a href="{% url 'reports:test_report' %}" class="btn btn-primary">Generate Test Report</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>📦 Inventory Reports</h3>
+        </div>
+        <div class="card-body">
+            <p>Track inventory levels, usage patterns, and stock movement history.</p>
+            <a href="{% url 'reports:inventory_report' %}" class="btn btn-primary">Generate Inventory Report</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>🔬 Instrument Reports</h3>
+        </div>
+        <div class="card-body">
+            <p>Review instrument calibration history, maintenance schedules, and utilization.</p>
+            <a href="{% url 'reports:instrument_report' %}" class="btn btn-primary">Generate Instrument Report</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+</style>
+{% endblock %}

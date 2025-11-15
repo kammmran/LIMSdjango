@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ instrument.name }} - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ instrument.name }}</h1>
+    <div>
+        <a href="{% url 'instruments:instrument_edit' instrument.pk %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'instruments:calibration_add' instrument.pk %}" class="btn btn-primary">Add Calibration</a>
+        <a href="{% url 'instruments:maintenance_add' instrument.pk %}" class="btn btn-primary">Add Maintenance</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Instrument Details</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Model:</strong> {{ instrument.model|default:'-' }}</p>
+                <p><strong>Serial Number:</strong> {{ instrument.serial_number|default:'-' }}</p>
+                <p><strong>Manufacturer:</strong> {{ instrument.manufacturer|default:'-' }}</p>
+                <p><strong>Location:</strong> {{ instrument.location|default:'-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Status:</strong> <span class="badge">{{ instrument.get_status_display }}</span></p>
+                <p><strong>Installation Date:</strong> {{ instrument.installation_date|date:"Y-m-d"|default:'-' }}</p>
+                <p><strong>Calibration Frequency:</strong> {{ instrument.calibration_frequency|default:'-' }} days</p>
+                <p><strong>Next Calibration:</strong> {{ instrument.next_calibration_date|date:"Y-m-d"|default:'-' }}</p>
+            </div>
+        </div>
+        {% if instrument.notes %}
+            <hr>
+            <p><strong>Notes:</strong></p>
+            <p>{{ instrument.notes }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Recent Calibrations</h3>
+    </div>
+    <div class="card-body">
+        {% if calibrations %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Performed By</th>
+                        <th>Result</th>
+                        <th>Next Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cal in calibrations %}
+                    <tr>
+                        <td>{{ cal.calibration_date|date:"Y-m-d" }}</td>
+                        <td>{{ cal.performed_by.get_full_name|default:'-' }}</td>
+                        <td><span class="badge badge-{{ cal.result }}">{{ cal.get_result_display }}</span></td>
+                        <td>{{ cal.next_calibration_date|date:"Y-m-d"|default:'-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No calibration records.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Maintenance History</h3>
+    </div>
+    <div class="card-body">
+        {% if maintenance_logs %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Performed By</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in maintenance_logs %}
+                    <tr>
+                        <td>{{ log.maintenance_date|date:"Y-m-d" }}</td>
+                        <td>{{ log.get_maintenance_type_display }}</td>
+                        <td>{{ log.performed_by.get_full_name|default:'-' }}</td>
+                        <td>{{ log.description|truncatewords:15 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No maintenance records.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

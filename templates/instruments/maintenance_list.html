@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Maintenance Logs - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Maintenance Logs</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>All Maintenance Records</h3>
+    </div>
+    <div class="card-body">
+        {% if logs %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Instrument</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Performed By</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.instrument.name }}</td>
+                        <td>{{ log.maintenance_date|date:"Y-m-d" }}</td>
+                        <td><span class="badge">{{ log.get_maintenance_type_display }}</span></td>
+                        <td>{{ log.performed_by.get_full_name|default:'-' }}</td>
+                        <td>{{ log.description|truncatewords:20 }}</td>
+                        <td>
+                            <a href="{% url 'instruments:instrument_detail' log.instrument.pk %}" class="btn btn-sm btn-info">View Instrument</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No maintenance records found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

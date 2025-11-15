@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}All Tests - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>All Tests</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Tests List</h3>
+    </div>
+    <div class="card-body">
+        {% if tests %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Test Code</th>
+                        <th>Test Name</th>
+                        <th>Category</th>
+                        <th>Sample Type</th>
+                        <th>Turnaround Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in tests %}
+                    <tr>
+                        <td>{{ test.test_code }}</td>
+                        <td>{{ test.name }}</td>
+                        <td><span class="badge badge-info">{{ test.get_category_display }}</span></td>
+                        <td>{{ test.sample_type|default:'-' }}</td>
+                        <td>{{ test.turnaround_time|default:'-' }} hrs</td>
+                        <td>
+                            {% if test.is_active %}
+                                <span class="badge badge-success">Active</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No tests found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

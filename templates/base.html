@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LIMS - Laboratory Information Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>LIMS</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">Samples</div>
+                    <a href="{% url 'samples:sample_create' %}" class="nav-item">
+                        <span class="icon">➕</span>
+                        <span>Register New Sample</span>
+                    </a>
+                    <a href="{% url 'samples:sample_list' %}" class="nav-item">
+                        <span class="icon">📋</span>
+                        <span>Sample List</span>
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">Tests</div>
+                    <a href="{% url 'tests:test_type_list' %}" class="nav-item">
+                        <span class="icon">🧪</span>
+                        <span>Test Types</span>
+                    </a>
+                    <a href="{% url 'tests:assign_test' %}" class="nav-item">
+                        <span class="icon">📝</span>
+                        <span>Assign Tests</span>
+                    </a>
+                    <a href="{% url 'tests:test_workflow' %}" class="nav-item">
+                        <span class="icon">🔄</span>
+                        <span>Test Workflow</span>
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">Results</div>
+                    <a href="{% url 'results:result_list' %}" class="nav-item">
+                        <span class="icon">✏️</span>
+                        <span>Enter Results</span>
+                    </a>
+                    <a href="{% url 'results:review_results' %}" class="nav-item">
+                        <span class="icon">👁️</span>
+                        <span>Pending Review</span>
+                    </a>
+                    <a href="{% url 'results:approved_results' %}" class="nav-item">
+                        <span class="icon">✅</span>
+                        <span>Approved Results</span>
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">Inventory</div>
+                    <a href="{% url 'inventory:reagent_list' %}" class="nav-item">
+                        <span class="icon">🧴</span>
+                        <span>Reagents</span>
+                    </a>
+                    <a href="{% url 'inventory:stock_list' %}" class="nav-item">
+                        <span class="icon">📦</span>
+                        <span>Stock Items</span>
+                    </a>
+                    <a href="{% url 'inventory:low_stock_alerts' %}" class="nav-item">
+                        <span class="icon">⚠️</span>
+                        <span>Low Stock Alerts</span>
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <div class="nav-group-title">Instruments</div>
+                    <a href="{% url 'instruments:instrument_list' %}" class="nav-item">
+                        <span class="icon">🔬</span>
+                        <span>Instrument List</span>
+                    </a>
+                    <a href="{% url 'instruments:calibration_list' %}" class="nav-item">
+                        <span class="icon">⚙️</span>
+                        <span>Calibration</span>
+                    </a>
+                    <a href="{% url 'instruments:maintenance_list' %}" class="nav-item">
+                        <span class="icon">🔧</span>
+                        <span>Maintenance Logs</span>
+                    </a>
+                </div>
+                
+                <a href="{% url 'reports:dashboard' %}" class="nav-item">
+                    <span class="icon">📈</span>
+                    <span>Reports</span>
+                </a>
+                
+                <a href="{% url 'audit:audit_log_list' %}" class="nav-item">
+                    <span class="icon">📜</span>
+                    <span>Audit Log</span>
+                </a>
+                
+                {% if user.is_superuser or user.has_permission.can_manage_users %}
+                <div class="nav-group">
+                    <div class="nav-group-title">Administration</div>
+                    <a href="{% url 'users:user_list' %}" class="nav-item">
+                        <span class="icon">👥</span>
+                        <span>Users & Roles</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <h1>LIMS – Laboratory Information Management System</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search..." id="globalSearch">
+                        <button>🔍</button>
+                    </div>
+                    <div class="user-menu">
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                        <div class="dropdown">
+                            <a href="{% url 'users:profile' %}">Profile</a>
+                            <a href="{% url 'users:logout' %}">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="close">×</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Page Content -->
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

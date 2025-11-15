@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Instruments - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Instruments</h1>
+    <a href="{% url 'instruments:instrument_create' %}" class="btn btn-primary">Add New Instrument</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Instruments List</h3>
+    </div>
+    <div class="card-body">
+        {% if instruments %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Model</th>
+                        <th>Serial Number</th>
+                        <th>Status</th>
+                        <th>Next Calibration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for instrument in instruments %}
+                    <tr>
+                        <td>{{ instrument.name }}</td>
+                        <td>{{ instrument.model|default:'-' }}</td>
+                        <td>{{ instrument.serial_number|default:'-' }}</td>
+                        <td>
+                            <span class="badge badge-{% if instrument.status == 'operational' %}success{% elif instrument.status == 'maintenance' %}warning{% else %}danger{% endif %}">
+                                {{ instrument.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ instrument.next_calibration_date|date:"Y-m-d"|default:'-' }}</td>
+                        <td>
+                            <a href="{% url 'instruments:instrument_detail' instrument.pk %}" class="btn btn-sm btn-info">View</a>
+                            <a href="{% url 'instruments:instrument_edit' instrument.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No instruments found. <a href="{% url 'instruments:instrument_create' %}">Add one now</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

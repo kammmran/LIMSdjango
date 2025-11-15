@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Roles - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Role Management</h1>
+    <a href="{% url 'users:role_create' %}" class="btn btn-primary">Add New Role</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Roles List</h3>
+    </div>
+    <div class="card-body">
+        {% if roles %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Role Name</th>
+                    <th>Description</th>
+                    <th>Users Count</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td>{{ role.name }}</td>
+                    <td>{{ role.description|default:'-' }}</td>
+                    <td>{{ role.user_set.count }}</td>
+                    <td>
+                        <a href="{% url 'users:role_edit' role.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No roles found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

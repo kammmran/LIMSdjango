@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Approved Results - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Approved Results</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Approved Test Results</h3>
+    </div>
+    <div class="card-body">
+        {% if results %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sample ID</th>
+                        <th>Test</th>
+                        <th>Entered By</th>
+                        <th>Reviewed By</th>
+                        <th>Review Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.test_assignment.sample.sample_id }}</td>
+                        <td>{{ result.test_assignment.test.name }}</td>
+                        <td>{{ result.entered_by.get_full_name }}</td>
+                        <td>{{ result.reviewed_by.get_full_name|default:'-' }}</td>
+                        <td>{{ result.review_date|date:"Y-m-d H:i"|default:'-' }}</td>
+                        <td>
+                            <a href="{% url 'results:export_result' result.pk %}" class="btn btn-sm btn-primary">Export PDF</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No approved results found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

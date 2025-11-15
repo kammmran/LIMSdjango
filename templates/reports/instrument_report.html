@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Instrument Report - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Instrument Report</h1>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary">Back to Reports</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Instrument Overview</h3>
+        <button onclick="window.print()" class="btn btn-sm btn-secondary">Print / Export PDF</button>
+    </div>
+    <div class="card-body">
+        {% if instruments %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Model</th>
+                    <th>Status</th>
+                    <th>Last Calibration</th>
+                    <th>Next Calibration</th>
+                    <th>Last Maintenance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instrument in instruments %}
+                <tr>
+                    <td>{{ instrument.name }}</td>
+                    <td>{{ instrument.model|default:'-' }}</td>
+                    <td><span class="badge">{{ instrument.get_status_display }}</span></td>
+                    <td>{{ instrument.last_calibration|date:"Y-m-d"|default:'-' }}</td>
+                    <td>{{ instrument.next_calibration_date|date:"Y-m-d"|default:'-' }}</td>
+                    <td>{{ instrument.last_maintenance|date:"Y-m-d"|default:'-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No instruments found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Low Stock Alerts - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Low Stock Alerts</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Reagents - Low Stock</h3>
+    </div>
+    <div class="card-body">
+        {% if low_stock_reagents %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Current Qty</th>
+                        <th>Min Qty</th>
+                        <th>Unit</th>
+                        <th>Expiry Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reagent in low_stock_reagents %}
+                    <tr class="alert-row">
+                        <td>{{ reagent.name }}</td>
+                        <td><strong>{{ reagent.quantity }}</strong></td>
+                        <td>{{ reagent.minimum_quantity }}</td>
+                        <td>{{ reagent.unit }}</td>
+                        <td>{{ reagent.expiry_date|date:"Y-m-d"|default:'-' }}</td>
+                        <td>
+                            <a href="{% url 'inventory:reagent_edit' reagent.pk %}" class="btn btn-sm btn-primary">Restock</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No reagents with low stock.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Stock Items - Low Stock</h3>
+    </div>
+    <div class="card-body">
+        {% if low_stock_items %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Current Qty</th>
+                        <th>Min Qty</th>
+                        <th>Unit</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in low_stock_items %}
+                    <tr class="alert-row">
+                        <td>{{ item.name }}</td>
+                        <td><strong>{{ item.quantity }}</strong></td>
+                        <td>{{ item.minimum_quantity }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>{{ item.location|default:'-' }}</td>
+                        <td>
+                            <a href="{% url 'inventory:stock_edit' item.pk %}" class="btn btn-sm btn-primary">Restock</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No stock items with low stock.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

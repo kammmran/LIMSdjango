@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Assign Tests - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Assign Tests</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="sample">Sample: *</label>
+                <select name="sample" id="sample" required class="form-control">
+                    <option value="">Select Sample</option>
+                    {% for sample in samples %}
+                        <option value="{{ sample.id }}">{{ sample.sample_id }} - {{ sample.sample_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Tests: *</label>
+                <div style="border: 1px solid #ddd; padding: 10px; max-height: 300px; overflow-y: auto;">
+                    {% for test in tests %}
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tests" value="{{ test.id }}">
+                                {{ test.test_code }} - {{ test.name }} ({{ test.get_category_display }})
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="assigned_to">Assign To Technician:</label>
+                <select name="assigned_to" id="assigned_to" class="form-control">
+                    <option value="">Select Technician</option>
+                    {% for user in technicians %}
+                        <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="priority">Priority:</label>
+                <select name="priority" id="priority" class="form-control">
+                    <option value="normal">Normal</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="stat">STAT</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes:</label>
+                <textarea name="notes" id="notes" rows="3" class="form-control"></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Assign Tests</button>
+                <a href="{% url 'tests:test_workflow' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

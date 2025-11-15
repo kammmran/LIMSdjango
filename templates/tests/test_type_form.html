@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Test Type - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ action }} Test Type</h1>
+    <a href="{% url 'tests:test_type_list' %}" class="btn btn-secondary">Back to List</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="testTypeForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="test_code">Test Code: *</label>
+                <input type="text" name="test_code" id="test_code" required 
+                       value="{{ test.test_code|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Test Name: *</label>
+                <input type="text" name="name" id="name" required 
+                       value="{{ test.name|default:'' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category: *</label>
+                <select name="category" id="category" required class="form-control">
+                    <option value="">Select Category</option>
+                    <option value="hematology" {% if test.category == 'hematology' %}selected{% endif %}>Hematology</option>
+                    <option value="biochemistry" {% if test.category == 'biochemistry' %}selected{% endif %}>Biochemistry</option>
+                    <option value="microbiology" {% if test.category == 'microbiology' %}selected{% endif %}>Microbiology</option>
+                    <option value="immunology" {% if test.category == 'immunology' %}selected{% endif %}>Immunology</option>
+                    <option value="molecular" {% if test.category == 'molecular' %}selected{% endif %}>Molecular Biology</option>
+                    <option value="pathology" {% if test.category == 'pathology' %}selected{% endif %}>Pathology</option>
+                    <option value="other" {% if test.category == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea name="description" id="description" rows="3" class="form-control">{{ test.description|default:'' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="turnaround_time">Turnaround Time (hours): *</label>
+                <input type="number" name="turnaround_time" id="turnaround_time" required
+                       value="{{ test.turnaround_time|default:24 }}" class="form-control">
+            </div>
+            
+            <hr>
+            
+            <h3>Test Parameters</h3>
+            <div id="parameters">
+                {% for param in parameters %}
+                <div class="parameter-row" style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px;">
+                    <input type="hidden" name="param_ids[]" value="{{ param.id }}">
+                    <div class="form-group">
+                        <label>Parameter Name: *</label>
+                        <input type="text" name="param_names[]" value="{{ param.name }}" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit:</label>
+                        <input type="text" name="param_units[]" value="{{ param.unit|default:'' }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Reference Range:</label>
+                        <input type="text" name="param_ranges[]" value="{{ param.reference_range|default:'' }}" class="form-control">
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove Parameter</button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <button type="button" class="btn btn-secondary" onclick="addParameter()">Add Parameter</button>
+            
+            <hr>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">{{ action }} Test Type</button>
+                <a href="{% url 'tests:test_type_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addParameter() {
+    const div = document.createElement('div');
+    div.className = 'parameter-row';
+    div.style.cssText = 'border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px;';
+    div.innerHTML = `
+        <div class="form-group">
+            <label>Parameter Name: *</label>
+            <input type="text" name="param_names[]" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Unit:</label>
+            <input type="text" name="param_units[]" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Reference Range:</label>
+            <input type="text" name="param_ranges[]" class="form-control">
+        </div>
+        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove Parameter</button>
+    `;
+    document.getElementById('parameters').appendChild(div);
+}
+</script>
+{% endblock %}

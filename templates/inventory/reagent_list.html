@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Reagents - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Reagents</h1>
+    <a href="{% url 'inventory:reagent_create' %}" class="btn btn-primary">Add New Reagent</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Reagents List</h3>
+    </div>
+    <div class="card-body">
+        {% if reagents %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Catalog Number</th>
+                        <th>Manufacturer</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reagent in reagents %}
+                    <tr>
+                        <td>{{ reagent.name }}</td>
+                        <td>{{ reagent.catalog_number }}</td>
+                        <td>{{ reagent.manufacturer|default:'-' }}</td>
+                        <td>{{ reagent.quantity }}</td>
+                        <td>{{ reagent.unit }}</td>
+                        <td>{{ reagent.expiry_date|date:"Y-m-d"|default:'-' }}</td>
+                        <td>
+                            {% if reagent.quantity <= reagent.minimum_quantity %}
+                                <span class="badge badge-warning">Low Stock</span>
+                            {% else %}
+                                <span class="badge badge-success">In Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'inventory:reagent_edit' reagent.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-muted">No reagents found. <a href="{% url 'inventory:reagent_create' %}">Add one now</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

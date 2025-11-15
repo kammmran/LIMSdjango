@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Users - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>User Management</h1>
+    <a href="{% url 'users:user_create' %}" class="btn btn-primary">Add New User</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Users List</h3>
+    </div>
+    <div class="card-body">
+        {% if users %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.get_full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role.name|default:'-' }}</td>
+                    <td>
+                        {% if user.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.last_login|date:"Y-m-d H:i"|default:'-' }}</td>
+                    <td>
+                        <a href="{% url 'users:user_edit' user.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                        <a href="{% url 'users:user_delete' user.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No users found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

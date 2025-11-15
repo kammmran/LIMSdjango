@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-header">
+    <h2>{{ action }} Sample</h2>
+    <a href="{% url 'samples:sample_list' %}" class="btn btn-light">Back to List</a>
+</div>
+
+<div class="card">
+    <form method="post" class="card-body">
+        {% csrf_token %}
+        
+        {% if sample %}
+        <div class="form-group">
+            <label>Sample ID</label>
+            <input type="text" class="form-control" value="{{ sample.sample_id }}" readonly>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="id_sample_type">Sample Type *</label>
+            {{ form.sample_type }}
+            {% if form.sample_type.errors %}
+            <span class="error">{{ form.sample_type.errors }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_source">Source / Customer / Patient *</label>
+            {{ form.source }}
+            {% if form.source.errors %}
+            <span class="error">{{ form.source.errors }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_priority">Priority</label>
+            {{ form.priority }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_assigned_technician">Assigned Technician</label>
+            {{ form.assigned_technician }}
+        </div>
+        
+        <div class="form-group">
+            <label for="id_notes">Notes</label>
+            {{ form.notes }}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{{ action }} Sample</button>
+            <a href="{% url 'samples:sample_list' %}" class="btn btn-light">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

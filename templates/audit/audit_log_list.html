@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit Log - LIMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Audit Log</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Filter Audit Logs</h3>
+    </div>
+    <div class="card-body">
+        <form method="get" class="filter-form">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="user">User:</label>
+                        <select name="user" id="user" class="form-control">
+                            <option value="">All Users</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ u.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="action">Action:</label>
+                        <select name="action" id="action" class="form-control">
+                            <option value="">All Actions</option>
+                            <option value="create">Create</option>
+                            <option value="update">Update</option>
+                            <option value="delete">Delete</option>
+                            <option value="view">View</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="start_date">Start Date:</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="end_date">End Date:</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{% url 'audit:audit_log_list' %}" class="btn btn-secondary">Clear Filters</a>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Activity Timeline</h3>
+    </div>
+    <div class="card-body">
+        {% if logs %}
+        <div class="timeline">
+            {% for log in logs %}
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <strong>{{ log.user.get_full_name|default:'System' }}</strong>
+                        <span class="badge badge-{{ log.action }}">{{ log.get_action_display }}</span>
+                        <span class="text-muted">{{ log.timestamp|date:"Y-m-d H:i:s" }}</span>
+                    </div>
+                    <div class="timeline-body">
+                        <p><strong>{{ log.model_name }}</strong>: {{ log.description }}</p>
+                        {% if log.changes %}
+                        <small class="text-muted">Changes: {{ log.changes }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if logs.has_other_pages %}
+        <div class="pagination">
+            {% if logs.has_previous %}
+                <a href="?page={{ logs.previous_page_number }}" class="btn btn-sm btn-secondary">Previous</a>
+            {% endif %}
+            <span>Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+            {% if logs.has_next %}
+                <a href="?page={{ logs.next_page_number }}" class="btn btn-sm btn-secondary">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-muted">No audit logs found.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+    border-left: 2px solid #ddd;
+}
+.timeline-marker {
+    position: absolute;
+    left: -6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #007bff;
+}
+.timeline-content {
+    padding-left: 20px;
+}
+.timeline-header {
+    margin-bottom: 5px;
+}
+.timeline-body {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}
