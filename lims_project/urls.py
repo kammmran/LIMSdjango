@@ -17,6 +17,7 @@ urlpatterns = [
     path('reports/', include('reports.urls')),
     path('audit/', include('audit.urls')),
     path('auth/', include('users.urls')),
+    path('labs/', include('labs.urls')),  # Lab Management System
 ]
 
 # Serve media files in development

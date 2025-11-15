@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("samples", "0003_sample_actual_completion_date_and_more"),
-        ("samples", "0003_time_management"),
     ]
 
     operations = []

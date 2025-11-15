@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Check Out Instrument{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-sign-out-alt"></i> Check Out Instrument</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Borrower:</strong> {{ borrowing.borrower_name }}<br>
+                        <strong>Instrument:</strong> {{ borrowing.instrument.name }} ({{ borrowing.instrument.serial_number }})<br>
+                        <strong>Period:</strong> {{ borrowing.requested_start_date|date:"M d, Y H:i" }} to {{ borrowing.requested_end_date|date:"M d, Y H:i" }}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="condition_at_checkout">Instrument Condition at Checkout <span class="text-danger">*</span></label>
+                            <textarea name="condition_at_checkout" id="condition_at_checkout" 
+                                      class="form-control" rows="4" required
+                                      placeholder="Describe the condition of the instrument (e.g., clean, all accessories included, no visible damage, etc.)"></textarea>
+                            <small class="form-text text-muted">
+                                Document the current condition for reference when the instrument is returned.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> By checking out this instrument, you confirm that:
+                            <ul class="mb-0 mt-2">
+                                <li>The borrower has been properly trained to use this instrument</li>
+                                <li>All accessories and components are included</li>
+                                <li>The instrument is in working condition</li>
+                                <li>The borrower understands the return deadline</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> Confirm Check Out
+                            </button>
+                            <a href="{% url 'instruments:borrowing_detail' borrowing.pk %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

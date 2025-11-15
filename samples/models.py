@@ -32,7 +32,41 @@ class Sample(models.Model):
     
     sample_id = models.CharField(max_length=50, unique=True, db_index=True)
     sample_type = models.CharField(max_length=50, choices=SAMPLE_TYPE_CHOICES)
-    source = models.CharField(max_length=200, help_text='Source/Customer/Patient')
+    
+    # Legacy source field (kept for backward compatibility)
+    source = models.CharField(max_length=200, help_text='Source/Customer/Patient (Legacy)', blank=True)
+    
+    # New Source - ForeignKey to Source model for better management
+    source_ref = models.ForeignKey(
+        'labs.Source',
+        on_delete=models.PROTECT,
+        related_name='samples',
+        null=True,
+        blank=True,
+        help_text='Sample source (Customer/Patient/Lab)',
+        verbose_name='Source Reference'
+    )
+    
+    # Lab that is processing this sample
+    processing_lab = models.ForeignKey(
+        'labs.Lab',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processing_samples',
+        help_text='Lab processing this sample'
+    )
+    
+    # If sample is transferred from another lab
+    originating_lab = models.ForeignKey(
+        'labs.Lab',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='originated_samples',
+        help_text='Lab that originally sent this sample'
+    )
+    
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='registered')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='normal')
     received_date = models.DateField(auto_now_add=True)
@@ -64,6 +98,18 @@ class Sample(models.Model):
     
     def __str__(self):
         return f"{self.sample_id} - {self.get_sample_type_display()}"
+    
+    @property
+    def source_display(self):
+        """Return source name for display"""
+        if self.source_ref:
+            return self.source_ref.display_name
+        return self.source or 'Unknown'
+    
+    @property
+    def is_inter_lab_transfer(self):
+        """Check if this sample is transferred from another lab"""
+        return self.originating_lab is not None and self.originating_lab != self.processing_lab
     
     @property
     def is_overdue(self):

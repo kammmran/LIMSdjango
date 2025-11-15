@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Borrowing Request{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .form-section h5 {
+        color: #667eea;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    .conditional-field {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fas fa-plus-circle"></i> New Borrowing Request</h2>
+            <p class="text-muted">Request to borrow an instrument for lectures, samples, or custom use</p>
+        </div>
+    </div>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        
+        <!-- Instrument Selection -->
+        <div class="form-section">
+            <h5><i class="fas fa-microscope"></i> Instrument</h5>
+            <div class="form-group">
+                <label for="instrument">Select Instrument <span class="text-danger">*</span></label>
+                <select name="instrument" id="instrument" class="form-control" required>
+                    <option value="">-- Select Instrument --</option>
+                    {% for inst in instruments %}
+                        <option value="{{ inst.id }}">{{ inst.name }} ({{ inst.serial_number }}) - {{ inst.location }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Borrower Information -->
+        <div class="form-section">
+            <h5><i class="fas fa-user"></i> Borrower Information</h5>
+            
+            <div class="form-group">
+                <label for="borrower_type">Borrower Type <span class="text-danger">*</span></label>
+                <select name="borrower_type" id="borrower_type" class="form-control" required>
+                    <option value="">-- Select Type --</option>
+                    {% for value, label in borrower_type_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="borrower_name">Borrower Name <span class="text-danger">*</span></label>
+                <input type="text" name="borrower_name" id="borrower_name" class="form-control" required 
+                       placeholder="Full name or organization">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="borrower_email">Email</label>
+                        <input type="email" name="borrower_email" id="borrower_email" class="form-control" 
+                               placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="borrower_phone">Phone</label>
+                        <input type="text" name="borrower_phone" id="borrower_phone" class="form-control" 
+                               placeholder="+1-555-0000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional: Link to Lab Person -->
+            {% if people %}
+            <div class="form-group">
+                <label for="borrower_person">Link to Person (Optional)</label>
+                <select name="borrower_person" id="borrower_person" class="form-control">
+                    <option value="">-- Select if from labs module --</option>
+                    {% for person in people %}
+                        <option value="{{ person.id }}">{{ person.first_name }} {{ person.last_name }} - {{ person.position }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- Optional: Link to Lab -->
+            {% if labs %}
+            <div class="form-group">
+                <label for="borrower_lab">Link to Lab (Optional)</label>
+                <select name="borrower_lab" id="borrower_lab" class="form-control">
+                    <option value="">-- Select if borrowing for a lab --</option>
+                    {% for lab in labs %}
+                        <option value="{{ lab.id }}">{{ lab.name }} ({{ lab.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Purpose -->
+        <div class="form-section">
+            <h5><i class="fas fa-clipboard-list"></i> Purpose</h5>
+            
+            <div class="form-group">
+                <label for="purpose">Purpose <span class="text-danger">*</span></label>
+                <select name="purpose" id="purpose" class="form-control" required>
+                    <option value="">-- Select Purpose --</option>
+                    {% for value, label in purpose_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="purpose_description">Detailed Description <span class="text-danger">*</span></label>
+                <textarea name="purpose_description" id="purpose_description" class="form-control" rows="3" required
+                          placeholder="Describe the intended use of the instrument..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="location_of_use">Location of Use <span class="text-danger">*</span></label>
+                <input type="text" name="location_of_use" id="location_of_use" class="form-control" required
+                       placeholder="Where will the instrument be used?">
+            </div>
+
+            <!-- Optional: Link to Sample -->
+            {% if samples %}
+            <div class="form-group">
+                <label for="sample">Associated Sample (Optional)</label>
+                <select name="sample" id="sample" class="form-control">
+                    <option value="">-- Select if for sample analysis --</option>
+                    {% for sample in samples %}
+                        <option value="{{ sample.id }}">{{ sample.sample_id }} - {{ sample.get_sample_type_display }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Link to a sample if borrowing for analysis</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Time Period -->
+        <div class="form-section">
+            <h5><i class="fas fa-clock"></i> Time Period</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="requested_start_date">Start Date & Time <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="requested_start_date" id="requested_start_date" 
+                               class="form-control" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="requested_end_date">End Date & Time <span class="text-danger">*</span></label>
+                        <input type="datetime-local" name="requested_end_date" id="requested_end_date" 
+                               class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="duration_display" class="alert alert-info" style="display: none;">
+                <strong>Duration:</strong> <span id="duration_text"></span>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="form-section">
+            <h5><i class="fas fa-info-circle"></i> Additional Information</h5>
+            
+            <div class="form-group">
+                <label for="accessories_borrowed">Accessories Borrowed</label>
+                <textarea name="accessories_borrowed" id="accessories_borrowed" class="form-control" rows="2"
+                          placeholder="List any accessories that will be borrowed with the instrument..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="special_instructions">Special Instructions</label>
+                <textarea name="special_instructions" id="special_instructions" class="form-control" rows="2"
+                          placeholder="Any special handling or usage instructions..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea name="notes" id="notes" class="form-control" rows="2"
+                          placeholder="Additional notes or comments..."></textarea>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-paper-plane"></i> Submit Request
+            </button>
+            <a href="{% url 'instruments:borrowing_list' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Calculate duration when dates change
+document.addEventListener('DOMContentLoaded', function() {
+    const startInput = document.getElementById('requested_start_date');
+    const endInput = document.getElementById('requested_end_date');
+    const durationDisplay = document.getElementById('duration_display');
+    const durationText = document.getElementById('duration_text');
+    
+    function calculateDuration() {
+        const start = new Date(startInput.value);
+        const end = new Date(endInput.value);
+        
+        if (start && end && end > start) {
+            const diff = end - start;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const days = Math.floor(hours / 24);
+            const remainingHours = hours % 24;
+            
+            let durationStr = '';
+            if (days > 0) {
+                durationStr = days + ' day(s) ' + remainingHours + ' hour(s)';
+            } else {
+                durationStr = hours + ' hour(s)';
+            }
+            
+            durationText.textContent = durationStr + ' (' + hours + ' hours total)';
+            durationDisplay.style.display = 'block';
+        } else {
+            durationDisplay.style.display = 'none';
+        }
+    }
+    
+    startInput.addEventListener('change', calculateDuration);
+    endInput.addEventListener('change', calculateDuration);
+});
+</script>
+{% endblock %}

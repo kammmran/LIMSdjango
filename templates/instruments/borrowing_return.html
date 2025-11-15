@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Return Instrument{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-sign-in-alt"></i> Return Instrument</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Borrower:</strong> {{ borrowing.borrower_name }}<br>
+                        <strong>Instrument:</strong> {{ borrowing.instrument.name }} ({{ borrowing.instrument.serial_number }})<br>
+                        <strong>Borrowed:</strong> {{ borrowing.actual_borrow_date|date:"M d, Y H:i" }}<br>
+                        <strong>Expected Return:</strong> {{ borrowing.requested_end_date|date:"M d, Y H:i" }}
+                        {% if borrowing.is_overdue %}
+                            <br><span class="badge badge-danger">OVERDUE by {{ borrowing.days_overdue }} days</span>
+                        {% endif %}
+                    </div>
+
+                    {% if borrowing.condition_at_checkout %}
+                    <div class="alert alert-secondary">
+                        <strong>Condition at Checkout:</strong><br>
+                        {{ borrowing.condition_at_checkout }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="condition_at_return">Instrument Condition at Return <span class="text-danger">*</span></label>
+                            <textarea name="condition_at_return" id="condition_at_return" 
+                                      class="form-control" rows="4" required
+                                      placeholder="Describe the condition of the returned instrument (e.g., clean, all accessories returned, any damage, etc.)"></textarea>
+                            <small class="form-text text-muted">
+                                Compare with checkout condition and note any changes or issues.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Checklist:</strong> Please verify:
+                            <ul class="mb-0 mt-2">
+                                <li>All accessories have been returned</li>
+                                <li>The instrument has been cleaned</li>
+                                <li>No visible damage to the instrument</li>
+                                <li>Instrument is in working condition</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-check"></i> Confirm Return
+                            </button>
+                            <a href="{% url 'instruments:borrowing_detail' borrowing.pk %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

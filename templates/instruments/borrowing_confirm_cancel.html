@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancel Borrowing{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-times-circle"></i> Cancel Borrowing Request</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Are you sure you want to cancel this borrowing request?</strong>
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Instrument:</dt>
+                        <dd class="col-sm-8">{{ borrowing.instrument.name }}</dd>
+
+                        <dt class="col-sm-4">Borrower:</dt>
+                        <dd class="col-sm-8">{{ borrowing.borrower_name }}</dd>
+
+                        <dt class="col-sm-4">Purpose:</dt>
+                        <dd class="col-sm-8">{{ borrowing.get_purpose_display }}</dd>
+
+                        <dt class="col-sm-4">Period:</dt>
+                        <dd class="col-sm-8">
+                            {{ borrowing.requested_start_date|date:"M d, Y" }} - 
+                            {{ borrowing.requested_end_date|date:"M d, Y" }}
+                        </dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge badge-secondary">{{ borrowing.get_status_display }}</span>
+                        </dd>
+                    </dl>
+
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash"></i> Yes, Cancel This Request
+                        </button>
+                        <a href="{% url 'instruments:borrowing_detail' borrowing.pk %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> No, Go Back
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

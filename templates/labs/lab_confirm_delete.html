@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Lab - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>Delete Lab</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Warning!</strong> Are you sure you want to delete the lab "{{ lab.name }}"?
+                This action cannot be undone.
+            </div>
+
+            <p><strong>Lab Details:</strong></p>
+            <ul>
+                <li>Name: {{ lab.name }}</li>
+                <li>Code: {{ lab.code }}</li>
+                <li>Members: {{ lab.member_count }}</li>
+                <li>Projects: {{ lab.active_projects_count }}</li>
+            </ul>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Yes, Delete Lab
+                </button>
+                <a href="{% url 'labs:lab_detail' lab.pk %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

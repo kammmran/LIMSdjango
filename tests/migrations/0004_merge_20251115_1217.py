@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("tests", "0003_cost_time_management"),
         ("tests", "0003_test_billable_amount_test_estimated_cost_and_more"),
     ]
 

@@ -1,0 +1,35 @@
+{
+  "name": "LIMS - Laboratory Information Management System",
+  "description": "A comprehensive Django-based Laboratory Information Management System",
+  "repository": "https://github.com/yourusername/lims",
+  "logo": "",
+  "keywords": ["python", "django", "lims", "laboratory", "management"],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key for Django security",
+      "generator": "secret"
+    },
+    "DEBUG": {
+      "description": "Debug mode (should be False in production)",
+      "value": "False"
+    },
+    "ALLOWED_HOSTS": {
+      "description": "Allowed hosts for the application",
+      "value": ".herokuapp.com"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    "heroku-postgresql:mini"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}

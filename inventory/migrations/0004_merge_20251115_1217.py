@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("inventory", "0003_cost_management"),
         ("inventory", "0003_inventorytransaction_total_cost_and_more"),
     ]
 

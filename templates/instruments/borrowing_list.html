@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Instrument Borrowing{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stat-item {
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .status-badge-pending { background-color: #ffc107; }
+    .status-badge-approved { background-color: #17a2b8; }
+    .status-badge-borrowed { background-color: #007bff; }
+    .status-badge-returned { background-color: #28a745; }
+    .status-badge-overdue { background-color: #dc3545; }
+    .status-badge-cancelled { background-color: #6c757d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-exchange-alt"></i> Instrument Borrowing</h2>
+            <p class="text-muted">Track instrument loans, lectures, sample analysis, and custom usage</p>
+            <div class="btn-group mt-2">
+                <a href="{% url 'instruments:borrowing_list' %}" class="btn btn-primary active">
+                    <i class="fas fa-list"></i> List View
+                </a>
+                <a href="{% url 'instruments:borrowing_timeline' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-alt"></i> Timeline View
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-card">
+        <div class="row">
+            <div class="col-md-2 stat-item">
+                <span class="stat-number">{{ stats.total }}</span>
+                <span class="stat-label">Total</span>
+            </div>
+            <div class="col-md-2 stat-item">
+                <span class="stat-number">{{ stats.pending }}</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="col-md-2 stat-item">
+                <span class="stat-number">{{ stats.borrowed }}</span>
+                <span class="stat-label">Currently Borrowed</span>
+            </div>
+            <div class="col-md-2 stat-item">
+                <span class="stat-number">{{ stats.overdue }}</span>
+                <span class="stat-label">Overdue</span>
+            </div>
+            <div class="col-md-2 stat-item">
+                <span class="stat-number">{{ stats.returned }}</span>
+                <span class="stat-label">Returned</span>
+            </div>
+            <div class="col-md-2 stat-item">
+                <a href="{% url 'instruments:borrowing_create' %}" class="btn btn-light">
+                    <i class="fas fa-plus"></i> New Request
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <div class="form-group mr-3">
+                    <label for="status" class="mr-2">Status:</label>
+                    <select name="status" id="status" class="form-control" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group mr-3">
+                    <label for="borrower_type" class="mr-2">Borrower Type:</label>
+                    <select name="borrower_type" id="borrower_type" class="form-control" onchange="this.form.submit()">
+                        <option value="">All</option>
+                        {% for value, label in borrower_type_choices %}
+                            <option value="{{ value }}" {% if borrower_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group mr-3">
+                    <label for="search" class="mr-2">Search:</label>
+                    <input type="text" name="search" id="search" class="form-control" value="{{ search }}" placeholder="Name, instrument...">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                
+                <a href="{% url 'instruments:borrowing_list' %}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Borrowing List -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Borrowing Records</h5>
+        </div>
+        <div class="card-body">
+            {% if borrowings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Instrument</th>
+                                <th>Borrower</th>
+                                <th>Type</th>
+                                <th>Purpose</th>
+                                <th>Requested Period</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for borrowing in borrowings %}
+                            <tr>
+                                <td>
+                                    <strong>{{ borrowing.instrument.name }}</strong><br>
+                                    <small class="text-muted">{{ borrowing.instrument.serial_number }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ borrowing.borrower_name }}</strong><br>
+                                    <small class="text-muted">
+                                        {% if borrowing.borrower_email %}{{ borrowing.borrower_email }}{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary">{{ borrowing.get_borrower_type_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ borrowing.get_purpose_display }}</span>
+                                    {% if borrowing.sample %}
+                                        <br><small>Sample: {{ borrowing.sample.sample_id }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>
+                                        <strong>From:</strong> {{ borrowing.requested_start_date|date:"M d, Y H:i" }}<br>
+                                        <strong>To:</strong> {{ borrowing.requested_end_date|date:"M d, Y H:i" }}
+                                    </small>
+                                </td>
+                                <td>
+                                    {% if borrowing.actual_duration_hours %}
+                                        <span class="badge badge-success">{{ borrowing.actual_duration_hours }} hrs</span>
+                                    {% else %}
+                                        <span class="badge badge-info">{{ borrowing.requested_duration_hours }} hrs</span>
+                                    {% endif %}
+                                    
+                                    {% if borrowing.is_overdue %}
+                                        <br><span class="badge badge-danger">{{ borrowing.days_overdue }} days overdue</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge status-badge-{{ borrowing.status }}">
+                                        {{ borrowing.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'instruments:borrowing_detail' borrowing.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    {% if borrowing.status == 'pending' %}
+                                        <a href="{% url 'instruments:borrowing_approve' borrowing.pk %}" 
+                                           class="btn btn-sm btn-success"
+                                           onclick="return confirm('Approve this request?');">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                    {% elif borrowing.status == 'approved' %}
+                                        <a href="{% url 'instruments:borrowing_checkout' borrowing.pk %}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-sign-out-alt"></i> Checkout
+                                        </a>
+                                    {% elif borrowing.status == 'borrowed' or borrowing.status == 'overdue' %}
+                                        <a href="{% url 'instruments:borrowing_return' borrowing.pk %}" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-sign-in-alt"></i> Return
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No borrowing records found.
+                    <a href="{% url 'instruments:borrowing_create' %}">Create a new borrowing request</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

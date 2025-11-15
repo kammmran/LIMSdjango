@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Task Kanban Board - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>Task Kanban Board</h1>
+        <div class="btn-group">
+            <a href="{% url 'labs:task_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> List View
+            </a>
+            <a href="{% url 'labs:task_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Task
+            </a>
+        </div>
+    </div>
+
+    <div class="kanban-board">
+        <!-- To Do Column -->
+        <div class="kanban-column">
+            <div class="kanban-column-header bg-secondary">
+                <h5><i class="fas fa-circle"></i> To Do</h5>
+                <span class="badge badge-light">{{ tasks_todo.count }}</span>
+            </div>
+            <div class="kanban-column-body" data-status="todo">
+                {% for task in tasks_todo %}
+                    <div class="kanban-card" data-task-id="{{ task.pk }}">
+                        <div class="kanban-card-header">
+                            <h6><a href="{% url 'labs:task_detail' task.pk %}">{{ task.title }}</a></h6>
+                            <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                        </div>
+                        {% if task.description %}
+                            <p class="kanban-card-description">{{ task.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        <div class="kanban-card-meta">
+                            {% if task.assigned_to %}
+                                <small><i class="fas fa-user"></i> {{ task.assigned_to.full_name }}</small>
+                            {% endif %}
+                            {% if task.deadline %}
+                                <small>
+                                    <i class="fas fa-calendar"></i> {{ task.deadline|date:"M d" }}
+                                    {% if task.is_overdue %}
+                                        <span class="text-danger">Overdue</span>
+                                    {% endif %}
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="kanban-card-actions">
+                            <button class="btn btn-sm btn-outline-primary move-task" data-status="in_progress">
+                                Move to In Progress →
+                            </button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center">No tasks</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="kanban-column">
+            <div class="kanban-column-header bg-primary">
+                <h5><i class="fas fa-spinner"></i> In Progress</h5>
+                <span class="badge badge-light">{{ tasks_in_progress.count }}</span>
+            </div>
+            <div class="kanban-column-body" data-status="in_progress">
+                {% for task in tasks_in_progress %}
+                    <div class="kanban-card" data-task-id="{{ task.pk }}">
+                        <div class="kanban-card-header">
+                            <h6><a href="{% url 'labs:task_detail' task.pk %}">{{ task.title }}</a></h6>
+                            <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                        </div>
+                        {% if task.description %}
+                            <p class="kanban-card-description">{{ task.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        <div class="kanban-card-meta">
+                            {% if task.assigned_to %}
+                                <small><i class="fas fa-user"></i> {{ task.assigned_to.full_name }}</small>
+                            {% endif %}
+                            {% if task.deadline %}
+                                <small>
+                                    <i class="fas fa-calendar"></i> {{ task.deadline|date:"M d" }}
+                                    {% if task.is_overdue %}
+                                        <span class="text-danger">Overdue</span>
+                                    {% endif %}
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="kanban-card-actions">
+                            <button class="btn btn-sm btn-outline-secondary move-task mr-1" data-status="todo">
+                                ← Back to To Do
+                            </button>
+                            <button class="btn btn-sm btn-outline-success move-task" data-status="done">
+                                Complete →
+                            </button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center">No tasks</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="kanban-column">
+            <div class="kanban-column-header bg-success">
+                <h5><i class="fas fa-check-circle"></i> Done</h5>
+                <span class="badge badge-light">{{ tasks_done.count }}</span>
+            </div>
+            <div class="kanban-column-body" data-status="done">
+                {% for task in tasks_done %}
+                    <div class="kanban-card kanban-card-completed" data-task-id="{{ task.pk }}">
+                        <div class="kanban-card-header">
+                            <h6><a href="{% url 'labs:task_detail' task.pk %}">{{ task.title }}</a></h6>
+                            <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                        </div>
+                        {% if task.description %}
+                            <p class="kanban-card-description">{{ task.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        <div class="kanban-card-meta">
+                            {% if task.assigned_to %}
+                                <small><i class="fas fa-user"></i> {{ task.assigned_to.full_name }}</small>
+                            {% endif %}
+                            {% if task.completed_date %}
+                                <small><i class="fas fa-check"></i> {{ task.completed_date|date:"M d" }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="kanban-card-actions">
+                            <button class="btn btn-sm btn-outline-primary move-task" data-status="in_progress">
+                                ← Reopen
+                            </button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center">No tasks</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Task status update functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const moveButtons = document.querySelectorAll('.move-task');
+    
+    moveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const card = this.closest('.kanban-card');
+            const taskId = card.dataset.taskId;
+            const newStatus = this.dataset.status;
+            
+            // Send AJAX request to update task status
+            fetch(`/labs/tasks/${taskId}/update-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated board
+                    location.reload();
+                } else {
+                    alert('Failed to update task status');
+                }
+            });
+        });
+    });
+});
+
+// Get CSRF token for AJAX requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

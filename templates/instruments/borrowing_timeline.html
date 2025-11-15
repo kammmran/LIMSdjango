@@ -1,0 +1,947 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Borrowing Timeline{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #f5f7fa;
+    }
+    
+    /* Compact Header */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    /* Stats Cards */
+    .stats-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-card {
+        flex: 1;
+        background: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+        border-left: 4px solid;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    
+    .stat-card.borrowed { border-left-color: #007bff; }
+    .stat-card.overdue { border-left-color: #dc3545; }
+    .stat-card.upcoming { border-left-color: #28a745; }
+    .stat-card.total { border-left-color: #6c757d; }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: bold;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-icon {
+        float: right;
+        font-size: 2rem;
+        opacity: 0.2;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+        background: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .toolbar-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #495057;
+        white-space: nowrap;
+    }
+    
+    .date-input {
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        width: 140px;
+    }
+    
+    .toolbar-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    
+    .btn-primary-custom {
+        background: #667eea;
+        color: white;
+    }
+    
+    .btn-primary-custom:hover {
+        background: #5568d3;
+    }
+    
+    .btn-secondary-custom {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary-custom:hover {
+        background: #5a6268;
+    }
+    
+    .view-toggle {
+        display: flex;
+        gap: 5px;
+        margin-left: auto;
+    }
+    
+    .toggle-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        border: 1px solid #dee2e6;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .toggle-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .toggle-btn:hover:not(.active) {
+        background: #f8f9fa;
+    }
+    
+    /* Gantt Chart - Modern Design */
+    .gantt-wrapper {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .gantt-container {
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: calc(100vh - 320px);
+        position: relative;
+        display: flex;
+    }
+    
+    /* Fixed Instrument Column */
+    .gantt-instruments {
+        width: 220px;
+        flex-shrink: 0;
+        background: white;
+        border-right: 2px solid #667eea;
+        z-index: 10;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    .gantt-instruments::-webkit-scrollbar {
+        width: 0;
+    }
+    
+    /* Scrollable Dates Area */
+    .gantt-dates-wrapper {
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+    
+    /* Custom Scrollbar */
+    .gantt-dates-wrapper::-webkit-scrollbar {
+        height: 10px;
+    }
+    
+    .gantt-dates-wrapper::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+    
+    .gantt-dates-wrapper::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 5px;
+    }
+    
+    .gantt-dates-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #5568d3;
+    }
+    
+    /* Scroll Navigation Buttons */
+    .scroll-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 30;
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 60px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .scroll-nav:hover {
+        background: rgba(102, 126, 234, 1);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .scroll-nav.left {
+        left: 230px;
+    }
+    
+    .scroll-nav.right {
+        right: 10px;
+    }
+    
+    .scroll-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    .gantt-chart {
+        display: table;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.8rem;
+        width: 100%;
+    }
+    
+    .gantt-chart-dates {
+        display: table;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.8rem;
+        width: max-content;
+    }
+    
+    .gantt-header {
+        display: table-row;
+    }
+    
+    .gantt-header-cell {
+        display: table-cell;
+        padding: 10px 5px;
+        border-bottom: 2px solid #667eea;
+        border-right: 1px solid #e9ecef;
+        text-align: center;
+        vertical-align: middle;
+        min-width: 60px;
+        background: linear-gradient(180deg, #667eea 0%, #5568d3 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    
+    .gantt-header-cell.instrument-name {
+        width: 220px;
+        text-align: left;
+        background: linear-gradient(180deg, #764ba2 0%, #653a8a 100%);
+        padding: 10px 12px;
+        border-right: 2px solid #653a8a;
+        position: sticky;
+        top: 0;
+        z-index: 15;
+    }
+    
+    .gantt-row {
+        display: table-row;
+    }
+    
+    .gantt-row:nth-child(even) .gantt-cell {
+        background: #fafbfc;
+    }
+    
+    .gantt-row:hover .gantt-cell {
+        background: #f0f4ff !important;
+    }
+    
+    .gantt-cell {
+        display: table-cell;
+        padding: 6px 3px;
+        border-right: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        min-height: 45px;
+        vertical-align: middle;
+        position: relative;
+        min-width: 60px;
+    }
+    
+    .gantt-cell.instrument-name {
+        font-weight: 600;
+        background: #ffffff;
+        width: 220px;
+        padding: 8px 12px;
+    }
+    
+    .gantt-row:nth-child(even) .gantt-cell.instrument-name {
+        background: #fafbfc;
+    }
+    
+    .gantt-cell.today {
+        background: linear-gradient(180deg, #fff9e6 0%, #fff3cd 100%);
+        position: relative;
+    }
+    
+    .gantt-cell.today::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #ffc107;
+    }
+    
+    .gantt-cell.weekend {
+        background: #f8f9fa;
+    }
+    
+    /* Borrowing Bars - Modern Style */
+    .gantt-bar {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        margin: 2px 0;
+        cursor: pointer;
+        position: relative;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+        font-weight: 500;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        transition: all 0.2s;
+    }
+    
+    .gantt-bar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 100;
+    }
+    
+    .gantt-bar.pending {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #000;
+        border-left: 3px solid #ff9800;
+    }
+    
+    .gantt-bar.approved {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+        border-left: 3px solid #117a8b;
+    }
+    
+    .gantt-bar.borrowed {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border-left: 3px solid #004085;
+    }
+    
+    .gantt-bar.overdue {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border-left: 3px solid #bd2130;
+        animation: pulse-glow 2s infinite;
+    }
+    
+    .gantt-bar.returned {
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        color: white;
+        border-left: 3px solid #1e7e34;
+        opacity: 0.6;
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3); }
+        50% { box-shadow: 0 2px 8px rgba(220, 53, 69, 0.6); }
+    }
+    
+    /* Tooltip - Enhanced */
+    .gantt-bar-tooltip {
+        position: absolute;
+        background: rgba(0,0,0,0.95);
+        color: white;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        z-index: 1000;
+        display: none;
+        min-width: 240px;
+        white-space: normal;
+        line-height: 1.5;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .gantt-bar:hover .gantt-bar-tooltip {
+        display: block;
+    }
+    
+    .tooltip-row {
+        margin-bottom: 4px;
+    }
+    
+    .tooltip-row:last-child {
+        margin-bottom: 0;
+    }
+    
+    .tooltip-label {
+        font-weight: 600;
+        color: #ffc107;
+    }
+    
+    /* Instrument Info */
+    .instrument-info {
+        font-size: 0.7rem;
+        color: #6c757d;
+        line-height: 1.3;
+        margin-top: 2px;
+    }
+    
+    .instrument-icon {
+        color: #667eea;
+        margin-right: 5px;
+    }
+    
+    /* Legend - Compact */
+    .legend-compact {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 12px;
+        border-radius: 2px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    .fab-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .fab-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stats-row {
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            min-width: calc(50% - 5px);
+        }
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .view-toggle {
+            margin-left: 0;
+        }
+    }
+    
+    /* Loading State */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+    
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Modern Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="page-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Instrument Borrowing Calendar
+                </h1>
+                <p class="page-subtitle">Visual timeline of instrument availability and usage</p>
+            </div>
+            <div class="col-md-6 text-right">
+                <a href="{% url 'instruments:borrowing_create' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus-circle"></i> New Borrowing Request
+                </a>
+                <a href="{% url 'instruments:borrowing_list' %}" class="btn btn-outline-light btn-sm ml-2">
+                    <i class="fas fa-list"></i> List View
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="stat-card borrowed">
+            <i class="fas fa-sign-out-alt stat-icon"></i>
+            <div class="stat-number" style="color: #007bff;">{{ currently_borrowed.count }}</div>
+            <div class="stat-label">Currently Borrowed</div>
+        </div>
+        <div class="stat-card overdue">
+            <i class="fas fa-exclamation-triangle stat-icon"></i>
+            <div class="stat-number" style="color: #dc3545;">{{ overdue_items.count }}</div>
+            <div class="stat-label">Overdue Items</div>
+        </div>
+        <div class="stat-card upcoming">
+            <i class="fas fa-calendar-check stat-icon"></i>
+            <div class="stat-number" style="color: #28a745;">{{ upcoming.count }}</div>
+            <div class="stat-label">Upcoming (7 Days)</div>
+        </div>
+        <div class="stat-card total">
+            <i class="fas fa-clipboard-list stat-icon"></i>
+            <div class="stat-number" style="color: #6c757d;">{{ borrowings.count }}</div>
+            <div class="stat-label">Total in Period</div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-section">
+            <span class="toolbar-label"><i class="fas fa-filter"></i> Date Range:</span>
+            <form method="get" style="display: flex; gap: 8px; align-items: center;">
+                <input type="date" name="start_date" class="date-input" 
+                       value="{{ start_date|date:'Y-m-d' }}" placeholder="Start Date">
+                <span style="color: #6c757d;">to</span>
+                <input type="date" name="end_date" class="date-input" 
+                       value="{{ end_date|date:'Y-m-d' }}" placeholder="End Date">
+                <button type="submit" class="toolbar-btn btn-primary-custom">
+                    <i class="fas fa-search"></i> Apply
+                </button>
+                <a href="{% url 'instruments:borrowing_timeline' %}" class="toolbar-btn btn-secondary-custom">
+                    <i class="fas fa-redo"></i> Reset
+                </a>
+            </form>
+        </div>
+        
+        <div class="view-toggle">
+            <button class="toggle-btn active">
+                <i class="fas fa-chart-gantt"></i> Gantt View
+            </button>
+            <a href="{% url 'instruments:borrowing_list' %}" class="toggle-btn">
+                <i class="fas fa-th-list"></i> List View
+            </a>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-compact">
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);"></div>
+            <span>Pending</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);"></div>
+            <span>Approved</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);"></div>
+            <span>Currently Borrowed</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);"></div>
+            <span>Overdue</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); opacity: 0.6;"></div>
+            <span>Returned</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(180deg, #fff9e6 0%, #fff3cd 100%);"></div>
+            <span>Today</span>
+        </div>
+    </div>
+
+    <!-- Main Gantt Chart -->
+    <div class="gantt-wrapper">
+        <button class="scroll-nav left" id="scrollLeft" onclick="scrollChart(-300)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="scroll-nav right" id="scrollRight" onclick="scrollChart(300)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="gantt-container" id="ganttContainer">
+            <div class="gantt-instruments" id="ganttInstruments"></div>
+            <div class="gantt-dates-wrapper" id="ganttDates"></div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="quick-actions">
+        <button class="fab-btn" onclick="window.location.href='{% url 'instruments:borrowing_create' %}'" 
+                title="New Borrowing Request">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+// Gantt chart data passed from Django
+const borrowingsData = {{ borrowings_json|safe }};
+const instrumentsData = {{ instruments_json|safe }};
+const startDate = new Date('{{ start_date|date:"Y-m-d" }}');
+const endDate = new Date('{{ end_date|date:"Y-m-d" }}');
+const today = new Date('{{ today|date:"Y-m-d" }}');
+
+// Scroll functionality
+function scrollChart(amount) {
+    const container = document.getElementById('ganttDates');
+    container.scrollBy({
+        left: amount,
+        behavior: 'smooth'
+    });
+    updateScrollButtons();
+}
+
+function updateScrollButtons() {
+    const container = document.getElementById('ganttDates');
+    const leftBtn = document.getElementById('scrollLeft');
+    const rightBtn = document.getElementById('scrollRight');
+    
+    if (container) {
+        // Disable left button if at start
+        leftBtn.disabled = container.scrollLeft <= 0;
+        
+        // Disable right button if at end
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        rightBtn.disabled = container.scrollLeft >= maxScroll - 5; // 5px tolerance
+    }
+}
+
+// Auto-scroll to today's date on load
+function scrollToToday() {
+    const container = document.getElementById('ganttDates');
+    const todayCells = container.querySelectorAll('.gantt-cell.today');
+    
+    if (todayCells.length > 0 && todayCells[0]) {
+        const firstTodayCell = todayCells[0];
+        const cellLeft = firstTodayCell.offsetLeft;
+        const containerWidth = container.clientWidth;
+        
+        // Scroll to center today's column
+        container.scrollTo({
+            left: cellLeft - containerWidth / 2 + 30,
+            behavior: 'smooth'
+        });
+    }
+    
+    updateScrollButtons();
+}
+
+// Sync vertical scrolling between instrument column and dates
+function syncScroll() {
+    const instrumentsContainer = document.getElementById('ganttInstruments');
+    const datesContainer = document.getElementById('ganttDates');
+    
+    let isInstrumentsScrolling = false;
+    let isDatesScrolling = false;
+    
+    instrumentsContainer.addEventListener('scroll', function() {
+        if (isDatesScrolling) return;
+        isInstrumentsScrolling = true;
+        datesContainer.scrollTop = instrumentsContainer.scrollTop;
+        setTimeout(() => { isInstrumentsScrolling = false; }, 10);
+    });
+    
+    datesContainer.addEventListener('scroll', function() {
+        if (isInstrumentsScrolling) return;
+        isDatesScrolling = true;
+        instrumentsContainer.scrollTop = datesContainer.scrollTop;
+        setTimeout(() => { isDatesScrolling = false; }, 10);
+        updateScrollButtons();
+    });
+}
+
+// Generate date range
+function generateDateRange(start, end) {
+    const dates = [];
+    let current = new Date(start);
+    while (current <= end) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+// Check if date is weekend
+function isWeekend(date) {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+}
+
+// Check if date is today
+function isToday(date) {
+    return date.toDateString() === today.toDateString();
+}
+
+// Format date
+function formatDate(date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return {
+        short: months[date.getMonth()] + ' ' + date.getDate(),
+        day: days[date.getDay()],
+        dayNum: date.getDate(),
+        month: months[date.getMonth()],
+        full: date.toISOString().split('T')[0]
+    };
+}
+
+// Build Gantt chart with modern design
+function buildGanttChart() {
+    const dates = generateDateRange(startDate, endDate);
+    const instrumentsContainer = document.getElementById('ganttInstruments');
+    const datesContainer = document.getElementById('ganttDates');
+    
+    if (instrumentsData.length === 0) {
+        instrumentsContainer.innerHTML = '<div style="padding: 40px; text-align: center; color: #6c757d;"><i class="fas fa-info-circle" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i><h5>No instruments with borrowings</h5></div>';
+        datesContainer.innerHTML = '<div style="padding: 40px; text-align: center; color: #6c757d;"><p>Try adjusting the date range or create a new borrowing request.</p></div>';
+        return;
+    }
+    
+    // Build instruments column
+    let instrumentsHtml = '<div class="gantt-chart">';
+    
+    // Header for instruments
+    instrumentsHtml += '<div class="gantt-header">';
+    instrumentsHtml += '<div class="gantt-header-cell instrument-name"><i class="fas fa-microscope"></i> Instrument</div>';
+    instrumentsHtml += '</div>';
+    
+    // Instrument rows
+    instrumentsData.forEach(instrument => {
+        instrumentsHtml += '<div class="gantt-row">';
+        instrumentsHtml += `<div class="gantt-cell instrument-name">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-flask instrument-icon"></i>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">${instrument.name}</div>
+                    <div class="instrument-info">
+                        <i class="fas fa-barcode"></i> ${instrument.serial_number}
+                    </div>
+                    <div class="instrument-info">
+                        <i class="fas fa-map-marker-alt"></i> ${instrument.location}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        instrumentsHtml += '</div>';
+    });
+    
+    instrumentsHtml += '</div>';
+    instrumentsContainer.innerHTML = instrumentsHtml;
+    
+    // Build dates columns
+    let datesHtml = '<div class="gantt-chart-dates">';
+    
+    // Header row for dates
+    datesHtml += '<div class="gantt-header">';
+    dates.forEach(date => {
+        const formatted = formatDate(date);
+        const isCurrentDay = isToday(date);
+        datesHtml += `<div class="gantt-header-cell${isCurrentDay ? ' today' : ''}">
+            <div style="font-weight: 600;">${formatted.dayNum}</div>
+            <div style="font-size: 0.65rem; opacity: 0.85;">${formatted.day}</div>
+            <div style="font-size: 0.65rem; opacity: 0.7;">${formatted.month}</div>
+        </div>`;
+    });
+    datesHtml += '</div>';
+    
+    // Date cells for each instrument
+    instrumentsData.forEach(instrument => {
+        datesHtml += '<div class="gantt-row">';
+        
+        dates.forEach(date => {
+            const dateStr = date.toISOString().split('T')[0];
+            let cellClass = 'gantt-cell';
+            if (isToday(date)) cellClass += ' today';
+            if (isWeekend(date)) cellClass += ' weekend';
+            
+            datesHtml += `<div class="${cellClass}" data-date="${dateStr}" data-instrument="${instrument.id}">`;
+            
+            // Find borrowings for this instrument on this date
+            const borrowingsOnDate = borrowingsData.filter(b => {
+                if (b.instrument_id !== instrument.id) return false;
+                const bStart = new Date(b.start_date.split('T')[0]);
+                const bEnd = new Date(b.end_date.split('T')[0]);
+                return date >= bStart && date <= bEnd;
+            });
+            
+            // Show only the first day of each borrowing
+            borrowingsOnDate.forEach(borrowing => {
+                const bStart = new Date(borrowing.start_date.split('T')[0]);
+                if (date.toDateString() === bStart.toDateString()) {
+                    const bEnd = new Date(borrowing.end_date.split('T')[0]);
+                    const durationDays = Math.ceil((bEnd - bStart) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    datesHtml += `<div class="gantt-bar ${borrowing.status}" onclick="window.location.href='/instruments/borrowing/${borrowing.id}/'">
+                        <div style="font-weight: 600;">${borrowing.borrower_name}</div>
+                        <div class="gantt-bar-tooltip">
+                            <div class="tooltip-row"><span class="tooltip-label">Instrument:</span> ${instrument.name}</div>
+                            <div class="tooltip-row"><span class="tooltip-label">Borrower:</span> ${borrowing.borrower_name}</div>
+                            <div class="tooltip-row"><span class="tooltip-label">Purpose:</span> ${borrowing.purpose}</div>
+                            <div class="tooltip-row"><span class="tooltip-label">Period:</span> ${formatDate(bStart).short} - ${formatDate(bEnd).short} (${durationDays} days)</div>
+                            <div class="tooltip-row"><span class="tooltip-label">Duration:</span> ${borrowing.duration} hours</div>
+                            <div class="tooltip-row"><span class="tooltip-label">Status:</span> ${borrowing.status_display}</div>
+                            ${borrowing.is_overdue ? '<div class="tooltip-row" style="color: #ff6b6b; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> OVERDUE by ' + borrowing.days_overdue + ' days</div>' : ''}
+                        </div>
+                    </div>`;
+                }
+            });
+            
+            datesHtml += '</div>';
+        });
+        
+        datesHtml += '</div>';
+    });
+    
+    datesHtml += '</div>';
+    datesContainer.innerHTML = datesHtml;
+    
+    // Setup scroll sync
+    syncScroll();
+    
+    // Scroll to today after chart is built
+    setTimeout(scrollToToday, 100);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    buildGanttChart();
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            scrollChart(-100);
+        } else if (e.key === 'ArrowRight') {
+            scrollChart(100);
+        }
+    });
+});
+</script>
+{% endblock %}

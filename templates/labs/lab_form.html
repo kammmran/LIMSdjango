@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ action }} Lab - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="breadcrumb-nav">
+        <a href="{% url 'labs:dashboard' %}">Dashboard</a> /
+        <a href="{% url 'labs:lab_list' %}">Labs</a> /
+        <span>{{ action }}</span>
+    </div>
+
+    <div class="page-header">
+        <h1>{{ action }} Lab</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="{{ form.name.id_for_label }}">Lab Name *</label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.code.id_for_label }}">Code *</label>
+                                    {{ form.code }}
+                                    {% if form.code.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.code.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.location.id_for_label }}">Location</label>
+                                    {{ form.location }}
+                                    {% if form.location.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.head_of_lab.id_for_label }}">Head of Lab</label>
+                                    {{ form.head_of_lab }}
+                                    {% if form.head_of_lab.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.head_of_lab.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.research_focus.id_for_label }}">Research Focus</label>
+                            {{ form.research_focus }}
+                            {% if form.research_focus.errors %}
+                                <div class="invalid-feedback d-block">{{ form.research_focus.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.established_date.id_for_label }}">Established Date</label>
+                                    {{ form.established_date }}
+                                    {% if form.established_date.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.established_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="form-check mt-4">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            Active
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Lab
+                            </button>
+                            <a href="{% if lab %}{% url 'labs:lab_detail' lab.pk %}{% else %}{% url 'labs:lab_list' %}{% endif %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

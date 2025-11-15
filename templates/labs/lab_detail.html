@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lab.name }} - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="breadcrumb-nav">
+        <a href="{% url 'labs:dashboard' %}">Dashboard</a> /
+        <a href="{% url 'labs:lab_list' %}">Labs</a> /
+        <span>{{ lab.name }}</span>
+    </div>
+
+    <div class="page-header">
+        <div>
+            <h1>{{ lab.name }} <small class="text-muted">({{ lab.code }})</small></h1>
+            {% if not lab.is_active %}
+                <span class="badge badge-secondary">Inactive</span>
+            {% endif %}
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'labs:lab_update' lab.pk %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'labs:lab_delete' lab.pk %}" class="btn btn-outline-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#overview">
+                <i class="fas fa-info-circle"></i> Overview
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#members">
+                <i class="fas fa-users"></i> Members <span class="badge badge-pill badge-info">{{ members.count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#projects">
+                <i class="fas fa-project-diagram"></i> Projects <span class="badge badge-pill badge-success">{{ projects.count }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#tasks">
+                <i class="fas fa-tasks"></i> Tasks <span class="badge badge-pill badge-warning">{{ tasks.count }}</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-pane fade show active">
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Lab Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th>Code:</th>
+                                    <td><code>{{ lab.code }}</code></td>
+                                </tr>
+                                <tr>
+                                    <th>Location:</th>
+                                    <td>{{ lab.location|default:"—" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Head of Lab:</th>
+                                    <td>
+                                        {% if lab.head_of_lab %}
+                                            <a href="{% url 'labs:person_detail' lab.head_of_lab.pk %}">
+                                                {{ lab.head_of_lab.full_name }}
+                                            </a>
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Established:</th>
+                                    <td>{{ lab.established_date|date:"M d, Y"|default:"—" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        {% if lab.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Research Focus</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if lab.research_focus %}
+                                <p>{{ lab.research_focus|linebreaks }}</p>
+                            {% else %}
+                                <p class="text-muted">No research focus specified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if lab.description %}
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5>Description</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ lab.description|linebreaks }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Tab -->
+        <div id="members" class="tab-pane fade">
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Lab Members</h5>
+                    <a href="{% url 'labs:person_create' %}?lab={{ lab.pk }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-user-plus"></i> Add Member
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if members %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Position</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in members %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'labs:person_detail' member.pk %}">
+                                                    {{ member.full_name }}
+                                                </a>
+                                            </td>
+                                            <td><span class="badge badge-primary">{{ member.get_role_display }}</span></td>
+                                            <td>{{ member.position|default:"—" }}</td>
+                                            <td><a href="mailto:{{ member.email }}">{{ member.email }}</a></td>
+                                            <td>
+                                                <a href="{% url 'labs:person_detail' member.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No members assigned to this lab yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div id="projects" class="tab-pane fade">
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Research Projects</h5>
+                    <a href="{% url 'labs:project_create' %}?lab={{ lab.pk }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Project
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if projects %}
+                        <div class="projects-grid">
+                            {% for project in projects %}
+                                <div class="project-card">
+                                    <div class="project-header">
+                                        <h6>
+                                            <a href="{% url 'labs:project_detail' project.pk %}">{{ project.title }}</a>
+                                        </h6>
+                                        <span class="badge badge-{{ project.status }}">{{ project.get_status_display }}</span>
+                                    </div>
+                                    <p class="project-summary">{{ project.summary|truncatewords:20 }}</p>
+                                    <div class="project-meta">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> {{ project.principal_investigator.full_name|default:"No PI" }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ project.start_date|date:"M Y"|default:"—" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No projects in this lab yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-pane fade">
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Lab Tasks</h5>
+                    <a href="{% url 'labs:task_create' %}?lab={{ lab.pk }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> New Task
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Assigned To</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Deadline</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'labs:task_detail' task.pk %}">{{ task.title }}</a>
+                                            </td>
+                                            <td>{{ task.assigned_to.full_name|default:"Unassigned" }}</td>
+                                            <td><span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span></td>
+                                            <td><span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+                                            <td>
+                                                {{ task.deadline|date:"M d, Y"|default:"—" }}
+                                                {% if task.is_overdue %}
+                                                    <span class="badge badge-danger">Overdue</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No tasks for this lab yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Activate Bootstrap tabs
+$(document).ready(function() {
+    $('.nav-tabs a').click(function (e) {
+        e.preventDefault();
+        $(this).tab('show');
+    });
+});
+</script>
+{% endblock %}

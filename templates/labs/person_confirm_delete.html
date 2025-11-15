@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Person - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>Delete Person</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Warning!</strong> Are you sure you want to delete "{{ person.full_name }}"?
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Yes, Delete Person
+                </button>
+                <a href="{% url 'labs:person_detail' person.pk %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

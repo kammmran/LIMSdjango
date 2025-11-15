@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Research Projects - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>Research Projects</h1>
+        <a href="{% url 'labs:project_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Project
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Search projects..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-control">
+                        <option value="">All Status</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="lab" class="form-control">
+                        <option value="">All Labs</option>
+                        {% for l in labs %}
+                            <option value="{{ l.pk }}" {% if lab_id == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary btn-block">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="card">
+        <div class="card-body">
+            {% if projects %}
+                <div class="projects-list">
+                    {% for project in projects %}
+                        <div class="project-item">
+                            <div class="project-item-header">
+                                <div>
+                                    <h5>
+                                        <a href="{% url 'labs:project_detail' project.pk %}">{{ project.title }}</a>
+                                    </h5>
+                                    <p class="text-muted mb-2">{{ project.summary|truncatewords:30 }}</p>
+                                </div>
+                                <span class="badge badge-{{ project.status }} badge-lg">{{ project.get_status_display }}</span>
+                            </div>
+                            <div class="project-item-meta">
+                                <span><i class="fas fa-flask"></i> {{ project.lab.name }}</span>
+                                <span><i class="fas fa-user"></i> {{ project.principal_investigator.full_name|default:"No PI" }}</span>
+                                <span><i class="fas fa-users"></i> {{ project.team_members.count }} members</span>
+                                <span><i class="fas fa-calendar"></i> {{ project.start_date|date:"M Y"|default:"—" }}</span>
+                                {% if project.is_overdue %}
+                                    <span class="badge badge-danger">Overdue</span>
+                                {% endif %}
+                            </div>
+                            <div class="project-item-actions">
+                                <a href="{% url 'labs:project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'labs:project_update' project.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-project-diagram fa-3x text-muted"></i>
+                    <p class="mt-3">No projects found</p>
+                    <a href="{% url 'labs:project_create' %}" class="btn btn-primary">Create First Project</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

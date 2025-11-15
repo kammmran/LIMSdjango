@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Borrowing Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .detail-card h5 {
+        color: #667eea;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    .info-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        font-weight: bold;
+        width: 200px;
+        color: #666;
+    }
+    .info-value {
+        flex: 1;
+    }
+    .status-badge-pending { background-color: #ffc107; color: #000; }
+    .status-badge-approved { background-color: #17a2b8; }
+    .status-badge-borrowed { background-color: #007bff; }
+    .status-badge-returned { background-color: #28a745; }
+    .status-badge-overdue { background-color: #dc3545; }
+    .status-badge-cancelled { background-color: #6c757d; }
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item {
+        position: relative;
+        padding-bottom: 20px;
+    }
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -22px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #667eea;
+    }
+    .timeline-item:after {
+        content: '';
+        position: absolute;
+        left: -17px;
+        top: 17px;
+        width: 2px;
+        height: calc(100% - 12px);
+        background: #ddd;
+    }
+    .timeline-item:last-child:after {
+        display: none;
+    }
+    .timeline-time {
+        color: #999;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-info-circle"></i> Borrowing Details</h2>
+            <div class="mt-2">
+                <span class="badge badge-lg status-badge-{{ borrowing.status }}">
+                    {{ borrowing.get_status_display }}
+                </span>
+                {% if borrowing.is_overdue %}
+                    <span class="badge badge-danger badge-lg ml-2">
+                        <i class="fas fa-exclamation-triangle"></i> {{ borrowing.days_overdue }} Days Overdue
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-8">
+            <!-- Instrument Information -->
+            <div class="detail-card">
+                <h5><i class="fas fa-microscope"></i> Instrument</h5>
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value"><strong>{{ borrowing.instrument.name }}</strong></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Model:</div>
+                    <div class="info-value">{{ borrowing.instrument.model }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Serial Number:</div>
+                    <div class="info-value">{{ borrowing.instrument.serial_number }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Location:</div>
+                    <div class="info-value">{{ borrowing.instrument.location }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Status:</div>
+                    <div class="info-value">
+                        <span class="badge badge-secondary">{{ borrowing.instrument.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Borrower Information -->
+            <div class="detail-card">
+                <h5><i class="fas fa-user"></i> Borrower Information</h5>
+                <div class="info-row">
+                    <div class="info-label">Type:</div>
+                    <div class="info-value">
+                        <span class="badge badge-info">{{ borrowing.get_borrower_type_display }}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value"><strong>{{ borrowing.borrower_name }}</strong></div>
+                </div>
+                {% if borrowing.borrower_email %}
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">
+                        <a href="mailto:{{ borrowing.borrower_email }}">{{ borrowing.borrower_email }}</a>
+                    </div>
+                </div>
+                {% endif %}
+                {% if borrowing.borrower_phone %}
+                <div class="info-row">
+                    <div class="info-label">Phone:</div>
+                    <div class="info-value">{{ borrowing.borrower_phone }}</div>
+                </div>
+                {% endif %}
+                {% if borrowing.borrower_person %}
+                <div class="info-row">
+                    <div class="info-label">Linked Person:</div>
+                    <div class="info-value">
+                        <a href="{% url 'labs:person_detail' borrowing.borrower_person.pk %}">
+                            {{ borrowing.borrower_person.first_name }} {{ borrowing.borrower_person.last_name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% if borrowing.borrower_lab %}
+                <div class="info-row">
+                    <div class="info-label">Lab:</div>
+                    <div class="info-value">
+                        <a href="{% url 'labs:lab_detail' borrowing.borrower_lab.pk %}">
+                            {{ borrowing.borrower_lab.name }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Purpose -->
+            <div class="detail-card">
+                <h5><i class="fas fa-clipboard-list"></i> Purpose</h5>
+                <div class="info-row">
+                    <div class="info-label">Purpose:</div>
+                    <div class="info-value">
+                        <span class="badge badge-primary">{{ borrowing.get_purpose_display }}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Description:</div>
+                    <div class="info-value">{{ borrowing.purpose_description }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Location of Use:</div>
+                    <div class="info-value">{{ borrowing.location_of_use }}</div>
+                </div>
+                {% if borrowing.sample %}
+                <div class="info-row">
+                    <div class="info-label">Sample:</div>
+                    <div class="info-value">
+                        <a href="{% url 'samples:sample_detail' borrowing.sample.pk %}">
+                            {{ borrowing.sample.sample_id }} - {{ borrowing.sample.get_sample_type_display }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Time Tracking -->
+            <div class="detail-card">
+                <h5><i class="fas fa-clock"></i> Time Tracking</h5>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div><strong>Request Created</strong></div>
+                        <div class="timeline-time">{{ borrowing.requested_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div><strong>Requested Start</strong></div>
+                        <div class="timeline-time">{{ borrowing.requested_start_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    
+                    {% if borrowing.actual_borrow_date %}
+                    <div class="timeline-item">
+                        <div><strong>Actually Borrowed</strong></div>
+                        <div class="timeline-time">{{ borrowing.actual_borrow_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="timeline-item">
+                        <div><strong>Requested Return</strong></div>
+                        <div class="timeline-time">{{ borrowing.requested_end_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    
+                    {% if borrowing.actual_return_date %}
+                    <div class="timeline-item">
+                        <div><strong>Actually Returned</strong></div>
+                        <div class="timeline-time">{{ borrowing.actual_return_date|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-3">
+                    <div class="info-row">
+                        <div class="info-label">Requested Duration:</div>
+                        <div class="info-value">
+                            <span class="badge badge-info">{{ borrowing.requested_duration_hours }} hours</span>
+                        </div>
+                    </div>
+                    {% if borrowing.actual_duration_hours %}
+                    <div class="info-row">
+                        <div class="info-label">Actual Duration:</div>
+                        <div class="info-value">
+                            <span class="badge badge-success">{{ borrowing.actual_duration_hours }} hours</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Condition Tracking -->
+            {% if borrowing.condition_at_checkout or borrowing.condition_at_return %}
+            <div class="detail-card">
+                <h5><i class="fas fa-check-circle"></i> Condition Tracking</h5>
+                {% if borrowing.condition_at_checkout %}
+                <div class="info-row">
+                    <div class="info-label">At Checkout:</div>
+                    <div class="info-value">{{ borrowing.condition_at_checkout }}</div>
+                </div>
+                {% endif %}
+                {% if borrowing.condition_at_return %}
+                <div class="info-row">
+                    <div class="info-label">At Return:</div>
+                    <div class="info-value">{{ borrowing.condition_at_return }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Additional Information -->
+            {% if borrowing.accessories_borrowed or borrowing.special_instructions or borrowing.notes %}
+            <div class="detail-card">
+                <h5><i class="fas fa-info-circle"></i> Additional Information</h5>
+                {% if borrowing.accessories_borrowed %}
+                <div class="info-row">
+                    <div class="info-label">Accessories:</div>
+                    <div class="info-value">{{ borrowing.accessories_borrowed }}</div>
+                </div>
+                {% endif %}
+                {% if borrowing.special_instructions %}
+                <div class="info-row">
+                    <div class="info-label">Instructions:</div>
+                    <div class="info-value">{{ borrowing.special_instructions }}</div>
+                </div>
+                {% endif %}
+                {% if borrowing.notes %}
+                <div class="info-row">
+                    <div class="info-label">Notes:</div>
+                    <div class="info-value">{{ borrowing.notes }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Actions -->
+        <div class="col-md-4">
+            <div class="detail-card">
+                <h5><i class="fas fa-cog"></i> Actions</h5>
+                
+                {% if borrowing.status == 'pending' %}
+                    <form method="post" action="{% url 'instruments:borrowing_approve' borrowing.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-block mb-2" 
+                                onclick="return confirm('Approve this borrowing request?');">
+                            <i class="fas fa-check"></i> Approve Request
+                        </button>
+                    </form>
+                    
+                    <a href="{% url 'instruments:borrowing_cancel' borrowing.pk %}" class="btn btn-danger btn-block">
+                        <i class="fas fa-times"></i> Cancel Request
+                    </a>
+                
+                {% elif borrowing.status == 'approved' %}
+                    <a href="{% url 'instruments:borrowing_checkout' borrowing.pk %}" class="btn btn-primary btn-block mb-2">
+                        <i class="fas fa-sign-out-alt"></i> Check Out Instrument
+                    </a>
+                    
+                    <a href="{% url 'instruments:borrowing_cancel' borrowing.pk %}" class="btn btn-danger btn-block">
+                        <i class="fas fa-times"></i> Cancel Request
+                    </a>
+                
+                {% elif borrowing.status == 'borrowed' or borrowing.status == 'overdue' %}
+                    <a href="{% url 'instruments:borrowing_return' borrowing.pk %}" class="btn btn-warning btn-block mb-2">
+                        <i class="fas fa-sign-in-alt"></i> Return Instrument
+                    </a>
+                    
+                    {% if borrowing.is_overdue %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Overdue!</strong><br>
+                        This borrowing is {{ borrowing.days_overdue }} day(s) overdue.
+                    </div>
+                    {% endif %}
+                
+                {% elif borrowing.status == 'returned' %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Returned</strong><br>
+                        This instrument has been returned.
+                    </div>
+                {% endif %}
+                
+                <a href="{% url 'instruments:borrowing_list' %}" class="btn btn-secondary btn-block mt-3">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <!-- Approval Information -->
+            {% if borrowing.approved_by %}
+            <div class="detail-card">
+                <h5><i class="fas fa-user-check"></i> Approval</h5>
+                <div class="info-row">
+                    <div class="info-label">Approved By:</div>
+                    <div class="info-value">{{ borrowing.approved_by.username }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Approval Date:</div>
+                    <div class="info-value">{{ borrowing.approval_date|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Metadata -->
+            <div class="detail-card">
+                <h5><i class="fas fa-database"></i> Metadata</h5>
+                <div class="info-row">
+                    <div class="info-label">Created By:</div>
+                    <div class="info-value">{{ borrowing.created_by.username|default:"System" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Created:</div>
+                    <div class="info-value">{{ borrowing.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Last Updated:</div>
+                    <div class="info-value">{{ borrowing.updated_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

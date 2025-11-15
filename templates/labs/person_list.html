@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}People - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>People & Team Members</h1>
+        <a href="{% url 'labs:person_create' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add Person
+        </a>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Search by name or email..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="role" class="form-control">
+                        <option value="">All Roles</option>
+                        {% for value, label in role_choices %}
+                            <option value="{{ value }}" {% if role == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="lab" class="form-control">
+                        <option value="">All Labs</option>
+                        {% for l in labs %}
+                            <option value="{{ l.pk }}" {% if lab_id == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary btn-block">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- People Grid -->
+    <div class="card">
+        <div class="card-body">
+            {% if people %}
+                <div class="people-grid">
+                    {% for person in people %}
+                        <div class="person-card">
+                            <div class="person-avatar">
+                                {% if person.photo %}
+                                    <img src="{{ person.photo.url }}" alt="{{ person.full_name }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ person.first_name.0 }}{{ person.last_name.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="person-info">
+                                <h5>
+                                    <a href="{% url 'labs:person_detail' person.pk %}">{{ person.full_name }}</a>
+                                </h5>
+                                <p class="text-muted">{{ person.position|default:"—" }}</p>
+                                <div class="person-meta">
+                                    <span class="badge badge-primary">{{ person.get_role_display }}</span>
+                                    {% if person.lab %}
+                                        <span class="badge badge-secondary">{{ person.lab.code }}</span>
+                                    {% endif %}
+                                    {% if not person.is_active %}
+                                        <span class="badge badge-warning">Inactive</span>
+                                    {% endif %}
+                                </div>
+                                <div class="person-contact mt-2">
+                                    <small><i class="fas fa-envelope"></i> {{ person.email }}</small>
+                                </div>
+                            </div>
+                            <div class="person-actions">
+                                <a href="{% url 'labs:person_detail' person.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'labs:person_update' person.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users fa-3x text-muted"></i>
+                    <p class="mt-3">No people found</p>
+                    <a href="{% url 'labs:person_create' %}" class="btn btn-primary">Add First Person</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

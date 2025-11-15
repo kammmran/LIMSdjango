@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Labs - LIMS{% endblock %}
+
+{% block content %}
+<div class="labs-container">
+    <div class="page-header">
+        <h1>Laboratories & Research Groups</h1>
+        <a href="{% url 'labs:lab_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Lab
+        </a>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <input type="text" name="q" class="form-control mr-2" placeholder="Search labs..." value="{{ query }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                {% if query %}
+                    <a href="{% url 'labs:lab_list' %}" class="btn btn-outline-secondary ml-2">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Labs Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if labs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Head of Lab</th>
+                                <th>Members</th>
+                                <th>Active Projects</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lab in labs %}
+                                <tr>
+                                    <td><code>{{ lab.code }}</code></td>
+                                    <td>
+                                        <a href="{% url 'labs:lab_detail' lab.pk %}" class="font-weight-bold">
+                                            {{ lab.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ lab.location|default:"—" }}</td>
+                                    <td>{{ lab.head_of_lab.full_name|default:"—" }}</td>
+                                    <td><span class="badge badge-info">{{ lab.members_count }}</span></td>
+                                    <td><span class="badge badge-success">{{ lab.projects_count }}</span></td>
+                                    <td>
+                                        {% if lab.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'labs:lab_detail' lab.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'labs:lab_update' lab.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-flask fa-3x text-muted"></i>
+                    <p class="mt-3">No labs found</p>
+                    <a href="{% url 'labs:lab_create' %}" class="btn btn-primary">Create Your First Lab</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
